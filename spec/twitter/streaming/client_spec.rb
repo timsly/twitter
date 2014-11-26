@@ -10,6 +10,8 @@ class FakeConnection
       response.on_body(line)
     end
   end
+
+  def close; end
 end
 
 describe Twitter::Streaming::Client do
@@ -117,6 +119,18 @@ describe Twitter::Streaming::Client do
       expect(objects[4].id).to eq(272_691_609_211_117_568)
       expect(objects[5]).to be_a Twitter::Streaming::StallWarning
       expect(objects[5].code).to eq('FALLING_BEHIND')
+    end
+  end
+
+  describe '#disconnect' do
+    before do
+      @client.connection = FakeConnection.new(fixture('track_streaming.json'))
+    end
+
+    it 'closes the connection' do
+      expect(@client.instance_variable_get(:@connection)).to receive(:close)
+      @client.filter(track: 'india') { |_| }
+      @client.disconnect
     end
   end
 end
